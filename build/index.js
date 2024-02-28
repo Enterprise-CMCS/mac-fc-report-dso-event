@@ -24733,6 +24733,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const child_process_1 = __nccwpck_require__(2081);
 const fs_1 = __nccwpck_require__(7147);
@@ -24746,6 +24755,7 @@ const NodeTypeToGoOs = {
     Darwin: "darwin",
     Linux: "linux",
 };
+// https://goreleaser.com/customization/builds/?h=guarantee#a-note-about-folder-names-inside-dist
 function getArtifactPath() {
     let data;
     try {
@@ -24767,14 +24777,20 @@ function getArtifactPath() {
 }
 function main() {
     var _a;
-    const args = core.getInput("args").split(" ");
-    const path = getArtifactPath();
-    const returns = (0, child_process_1.spawnSync)(path, args);
-    const status = (_a = returns.status) !== null && _a !== void 0 ? _a : 1;
-    core.setOutput("exit-code", status);
-    core.setOutput("output", returns.stdout.toString());
-    core.setOutput("error-output", returns.stderr.toString());
-    process.exit(status);
+    return __awaiter(this, void 0, void 0, function* () {
+        const args = core.getInput("args").split(" ");
+        const path = getArtifactPath();
+        const returns = (0, child_process_1.spawnSync)(path, args);
+        const status = (_a = returns.status) !== null && _a !== void 0 ? _a : 1;
+        const stdout = returns.stdout.toString();
+        const stderr = returns.stderr.toString();
+        console.log(stdout);
+        console.error(stderr);
+        core.setOutput("exit-code", status);
+        core.setOutput("output", stdout);
+        core.setOutput("error-output", stderr);
+        process.exit(status);
+    });
 }
 if (require.main === require.cache[eval('__filename')]) {
     main();

@@ -2,7 +2,7 @@
   "name": "mac-fc-dso-metrics",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "build/index.js",
   "scripts": {
     "compile": "ncc build src/index.ts -o build --source-map --license licenses.txt"
   },

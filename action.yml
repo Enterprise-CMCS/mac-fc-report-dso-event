@@ -2,7 +2,7 @@ name: report-event
 description: 'Sends event data to the MACBIS DevSecOps Metrics API'
 inputs:
   args:
-    description: Arguments to pass to the report-event program. See cmd/report-event/README.md for documentation
+    description: Arguments to pass to the report-event program. Please see Enterprise-CMCS/mac-fc-dso-metrics/cmd/report-event/README.md for documentation
 outputs:
   exit-code:
     description: The exit code of the program
@@ -11,5 +11,5 @@ outputs:
   error-output:
     description: The error output of the program (stderr)
 runs:
-  using: node16 # TODO test node20
+  using: node20
   main: build/index.js

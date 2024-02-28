@@ -3,11 +3,11 @@ import { readFileSync } from "fs";
 import { arch, type } from "os";
 import * as core from "@actions/core";
 
-interface Artifact {
+type Artifact = {
   goos: string;
   goarch: string;
   path: string;
-}
+};
 
 type StringToStringMap = {
   [key: string]: string;
@@ -47,14 +47,22 @@ function getArtifactPath(): string {
   return artifact.path;
 }
 
-function main() {
+async function main() {
   const args = core.getInput("args").split(" ");
   const path = getArtifactPath();
   const returns = spawnSync(path, args);
   const status = returns.status ?? 1;
+
+  const stdout = returns.stdout.toString();
+  const stderr = returns.stderr.toString();
+
+  console.log(stdout);
+  console.error(stderr);
+
   core.setOutput("exit-code", status);
-  core.setOutput("output", returns.stdout.toString());
-  core.setOutput("error-output", returns.stderr.toString());
+  core.setOutput("output", stdout);
+  core.setOutput("error-output", stderr);
+
   process.exit(status);
 }
 
