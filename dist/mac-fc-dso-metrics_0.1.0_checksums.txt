@@ -1,0 +1,6 @@
+07fef887bfcb8eba44f4ef7cfeaa0ef3be2a007972c13917e373ddb33006e35f  mac-fc-dso-metrics-Darwin-arm64.tar.gz
+415f38b71b23fd6218cb3d3f87dc21ab1a5720f4033f74a181adc1bb557faca9  mac-fc-dso-metrics-Darwin-x86_64.tar.gz
+15b9a460dce415951465fee374a477d109858b450f0dc7cae76724af4f852c8e  mac-fc-dso-metrics-Linux-arm64.tar.gz
+e2b11fe51ba52d8058bfd9c8d4c71fc314487a32ad64dded8eb6c8a4a7568c1b  mac-fc-dso-metrics-Linux-x86_64.tar.gz
+e7eb7926b56a48fb3b60b0013da9c2d61c6a817a1277834227d0a5b022fe1737  mac-fc-dso-metrics-Windows-arm64.zip
+f125fbd8b7b2cba9c3182c17d3edb0a3b4978d1a30ede2a6477229b93b50e0ad  mac-fc-dso-metrics-Windows-x86_64.zip
