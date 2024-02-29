@@ -24753,7 +24753,7 @@ function getArtifactPath() {
         data = (0, fs_1.readFileSync)("dist/artifacts.json", "utf8");
     }
     catch (error) {
-        console.error(`Error reading artifacts file:", ${error}`);
+        console.error(`Error reading artifacts file: ${error}`);
         process.exit(1);
     }
     let artifacts;
