@@ -29,30 +29,49 @@ function getArtifactPath(): string {
   try {
     data = readFileSync("dist/artifacts.json", "utf8");
   } catch (error) {
-    console.error("Error reading artifacts file:", error);
+    console.error(`Error reading artifacts file:", ${error}`);
     process.exit(1);
   }
-  const artifacts: Artifact[] = JSON.parse(data);
 
-  const goArch = NodeArchToGoArch[arch()];
-  const goOs = NodeTypeToGoOs[type()];
+  let artifacts: Artifact[];
+  try {
+    artifacts = JSON.parse(data);
+  } catch (error) {
+    console.error(`Error parsing artifacts file: ${error}`);
+    process.exit(1);
+  }
+
+  const nodeArch = arch();
+  const goArch = NodeArchToGoArch[nodeArch];
+  const nodeType = type();
+  const goOs = NodeTypeToGoOs[nodeType];
+
   const artifact = artifacts.find(
     (a) => a.goos === goOs && a.goarch === goArch
   );
   if (!artifact) {
-    console.log("No artifact found for this OS and architecture");
+    console.error(
+      `No artifact found. Node detected OS ${nodeType} and architecture: ${nodeArch}, which maps to GOOS: ${goOs} and GOARCH: ${goArch}`
+    );
     process.exit(1);
   }
 
   return artifact.path;
 }
 
-async function main() {
+function main() {
   const args = core.getInput("args").split(" ");
   const path = getArtifactPath();
-  const returns = spawnSync(path, args);
-  const status = returns.status ?? 1;
 
+  let returns;
+  try {
+    returns = spawnSync(path, args);
+  } catch (error) {
+    console.error(`Error spawning child process: ${error}`);
+    process.exit(1);
+  }
+
+  const status = returns.status ?? 1;
   const stdout = returns.stdout.toString();
   const stderr = returns.stderr.toString();
 
