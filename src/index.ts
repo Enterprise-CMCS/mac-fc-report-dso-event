@@ -29,7 +29,7 @@ function getArtifactPath(): string {
   try {
     data = readFileSync("dist/artifacts.json", "utf8");
   } catch (error) {
-    console.error(`Error reading artifacts file:", ${error}`);
+    console.error(`Error reading artifacts file: ${error}`);
     process.exit(1);
   }
 
