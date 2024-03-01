@@ -1,71 +1,98 @@
 import { spawnSync } from "child_process";
-import { readFileSync } from "fs";
 import { arch, type } from "os";
 import * as core from "@actions/core";
+import { Octokit } from "@octokit/rest";
+import * as semver from "semver";
+import fs from "fs/promises";
+import { GetResponseDataTypeFromEndpointMethod } from "@octokit/types";
 
-type Artifact = {
-  goos: string;
-  goarch: string;
-  path: string;
-};
+const releaseRepoOwner = "ben-harvey";
+const releaseRepo = "test-releases";
 
-type StringToStringMap = {
-  [key: string]: string;
-};
+const octokit = new Octokit();
 
-const NodeArchToGoArch: StringToStringMap = {
-  x64: "amd64",
-};
+type ListReleasesResponseDataType = GetResponseDataTypeFromEndpointMethod<
+  typeof octokit.repos.listReleases
+>;
 
-const NodeTypeToGoOs: StringToStringMap = {
-  Windows_NT: "windows",
-  Darwin: "darwin",
-  Linux: "linux",
-};
+async function downloadAsset(name: string, url: string) {
+  const response = await fetch(url);
 
-// https://goreleaser.com/customization/builds/?h=guarantee#a-note-about-folder-names-inside-dist
-function getArtifactPath(): string {
-  let data: string;
+  if (!response.ok) {
+    throw new Error(`Failed to download asset: ${response.statusText}`);
+  }
+
+  const data = await response.arrayBuffer();
+  const buffer = Buffer.from(data);
+
   try {
-    data = readFileSync("dist/artifacts.json", "utf8");
+    await fs.writeFile(name, buffer, { mode: 755 });
   } catch (error) {
-    console.error(`Error reading artifacts file: ${error}`);
-    process.exit(1);
+    throw new Error(`Error writing the release asset: ${error}`);
   }
-
-  let artifacts: Artifact[];
-  try {
-    artifacts = JSON.parse(data);
-  } catch (error) {
-    console.error(`Error parsing artifacts file: ${error}`);
-    process.exit(1);
-  }
-
-  const nodeArch = arch();
-  const goArch = NodeArchToGoArch[nodeArch];
-  const nodeType = type();
-  const goOs = NodeTypeToGoOs[nodeType];
-
-  const artifact = artifacts.find(
-    (a) => a.goos === goOs && a.goarch === goArch
-  );
-  if (!artifact) {
-    console.error(
-      `No artifact found. Node detected OS ${nodeType} and architecture: ${nodeArch}, which maps to GOOS: ${goOs} and GOARCH: ${goArch}`
-    );
-    process.exit(1);
-  }
-
-  return artifact.path;
 }
 
-function main() {
+async function downloadRelease(version: string): Promise<string> {
+  let releases: ListReleasesResponseDataType;
+  try {
+    const response = await octokit.repos.listReleases({
+      owner: releaseRepoOwner,
+      repo: releaseRepo,
+    });
+    releases = response.data;
+  } catch (error) {
+    throw new Error(
+      `Error listing releases for ${releaseRepoOwner}/${releaseRepo}: ${error}`
+    );
+  }
+
+  // sort descending by tag so that "*" selects the latest version
+  releases.sort((a, b) => semver.rcompare(a.tag_name, b.tag_name));
+  const validRelease = releases.find((release) =>
+    semver.satisfies(release.tag_name, version)
+  );
+  if (!validRelease) {
+    throw new Error(
+      `No release found that satisfies version constraint: ${version}`
+    );
+  }
+  console.log(`Using release ${validRelease.name}`);
+
+  const nodeArch = arch();
+  const nodeType = type();
+  const asset = validRelease.assets.find(
+    (a) => a.name.includes(nodeArch) && a.name.includes(nodeType)
+  );
+  if (!asset) {
+    throw new Error(
+      `No release asset found for runner arch: ${nodeArch} and runner type: ${nodeType}`
+    );
+  }
+
+  try {
+    await downloadAsset(asset.name, asset.browser_download_url);
+  } catch (error) {
+    throw new Error(`Error downloading release asset: ${error}`);
+  }
+
+  return asset.name;
+}
+
+async function main() {
+  const version = core.getInput("version");
   const args = core.getInput("args").split(" ");
-  const path = getArtifactPath();
+
+  let releaseName;
+  try {
+    releaseName = await downloadRelease(version);
+  } catch (error) {
+    console.error(`Error downloading release: ${error}`);
+    process.exit(1);
+  }
 
   let returns;
   try {
-    returns = spawnSync(path, args);
+    returns = spawnSync(`./${releaseName}`, args);
   } catch (error) {
     console.error(`Error spawning child process: ${error}`);
     process.exit(1);
@@ -75,6 +102,7 @@ function main() {
   const stdout = returns.stdout.toString();
   const stderr = returns.stderr.toString();
 
+  // print the report-event output in the GitHub Action logs
   console.log(stdout);
   console.error(stderr);
 
