@@ -32162,7 +32162,9 @@ const semver = __importStar(__nccwpck_require__(117));
 const promises_1 = __importDefault(__nccwpck_require__(3292));
 const releaseRepoOwner = "Enterprise-CMCS";
 const releaseRepo = "mac-fc-report-event-releases";
-const octokit = new rest_1.Octokit();
+const octokit = new rest_1.Octokit({
+    auth: core.getInput("token"),
+});
 function downloadAsset(name, url) {
     return __awaiter(this, void 0, void 0, function* () {
         const response = yield fetch(url);

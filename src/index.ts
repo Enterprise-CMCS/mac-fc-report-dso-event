@@ -9,7 +9,9 @@ import { GetResponseDataTypeFromEndpointMethod } from "@octokit/types";
 const releaseRepoOwner = "Enterprise-CMCS";
 const releaseRepo = "mac-fc-report-event-releases";
 
-const octokit = new Octokit();
+const octokit = new Octokit({
+  auth: core.getInput("token"),
+});
 
 type ListReleasesResponseDataType = GetResponseDataTypeFromEndpointMethod<
   typeof octokit.repos.listReleases
