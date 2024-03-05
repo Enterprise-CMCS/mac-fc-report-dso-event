@@ -32160,14 +32160,14 @@ const core = __importStar(__nccwpck_require__(9093));
 const rest_1 = __nccwpck_require__(6238);
 const semver = __importStar(__nccwpck_require__(117));
 const promises_1 = __importDefault(__nccwpck_require__(3292));
-const releaseRepoOwner = "ben-harvey";
-const releaseRepo = "test-releases";
+const releaseRepoOwner = "Enterprise-CMCS";
+const releaseRepo = "mac-fc-report-event-releases";
 const octokit = new rest_1.Octokit();
 function downloadAsset(name, url) {
     return __awaiter(this, void 0, void 0, function* () {
         const response = yield fetch(url);
         if (!response.ok) {
-            throw new Error(`Failed to download asset: ${response.statusText}`);
+            throw new Error(`Error downloading asset: ${response.statusText}`);
         }
         const data = yield response.arrayBuffer();
         const buffer = Buffer.from(data);
@@ -32175,7 +32175,7 @@ function downloadAsset(name, url) {
             yield promises_1.default.writeFile(name, buffer, { mode: 755 });
         }
         catch (error) {
-            throw new Error(`Error writing the release asset: ${error}`);
+            throw new Error(`Error writing the release asset to file: ${error}`);
         }
     });
 }
@@ -32192,7 +32192,7 @@ function downloadRelease(version) {
         catch (error) {
             throw new Error(`Error listing releases for ${releaseRepoOwner}/${releaseRepo}: ${error}`);
         }
-        // sort descending by versions so that "*" selects the latest version
+        // sort descending by tag so that "*" selects the latest version
         releases.sort((a, b) => semver.rcompare(a.tag_name, b.tag_name));
         const validRelease = releases.find((release) => semver.satisfies(release.tag_name, version));
         if (!validRelease) {

@@ -6,8 +6,8 @@ import * as semver from "semver";
 import fs from "fs/promises";
 import { GetResponseDataTypeFromEndpointMethod } from "@octokit/types";
 
-const releaseRepoOwner = "ben-harvey";
-const releaseRepo = "test-releases";
+const releaseRepoOwner = "Enterprise-CMCS";
+const releaseRepo = "mac-fc-report-event-releases";
 
 const octokit = new Octokit();
 
@@ -19,16 +19,15 @@ async function downloadAsset(name: string, url: string) {
   const response = await fetch(url);
 
   if (!response.ok) {
-    throw new Error(`Failed to download asset: ${response.statusText}`);
+    throw new Error(`Error downloading asset: ${response.statusText}`);
   }
 
   const data = await response.arrayBuffer();
   const buffer = Buffer.from(data);
-
   try {
     await fs.writeFile(name, buffer, { mode: 755 });
   } catch (error) {
-    throw new Error(`Error writing the release asset: ${error}`);
+    throw new Error(`Error writing the release asset to file: ${error}`);
   }
 }
 

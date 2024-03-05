@@ -4,7 +4,7 @@ inputs:
   args:
     description: Arguments to pass to the report-event program. Please see Enterprise-CMCS/mac-fc-dso-metrics/cmd/report-event/README.md for documentation
   version:
-    description: The version of the report-event program to run in semantic version syntax. Defaults to the latest version (we recommend pinning to a specific version or range)
+    description: The version constraint for the report-event program in semantic version syntax. Defaults to the latest version (we recommend pinning to a specific version or range)
     default: "*"
 outputs:
   exit-code:
