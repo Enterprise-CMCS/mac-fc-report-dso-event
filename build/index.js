@@ -32162,9 +32162,18 @@ const semver = __importStar(__nccwpck_require__(117));
 const promises_1 = __importDefault(__nccwpck_require__(3292));
 const releaseRepoOwner = "Enterprise-CMCS";
 const releaseRepo = "mac-fc-report-event-releases";
+const releaseBinaryName = "report-event";
+const windowsType = "Windows_NT"; // https://nodejs.org/api/os.html#ostype
 const octokit = new rest_1.Octokit({
     auth: core.getInput("token"),
 });
+function formatReleaseName(version, type, arch) {
+    let name = `${releaseBinaryName}_${version}_${type}_${arch}`;
+    if (type === windowsType) {
+        name += ".exe";
+    }
+    return name;
+}
 function downloadAsset(name, url) {
     return __awaiter(this, void 0, void 0, function* () {
         const response = yield fetch(url);
@@ -32203,7 +32212,7 @@ function downloadRelease(version) {
         console.log(`Using release ${validRelease.name}`);
         const nodeArch = (0, os_1.arch)();
         const nodeType = (0, os_1.type)();
-        const asset = validRelease.assets.find((a) => a.name.includes(nodeArch) && a.name.includes(nodeType));
+        const asset = validRelease.assets.find((a) => a.name === formatReleaseName(validRelease.tag_name, nodeType, nodeArch));
         if (!asset) {
             throw new Error(`No release asset found for runner arch: ${nodeArch} and runner type: ${nodeType}`);
         }

@@ -8,6 +8,8 @@ import { GetResponseDataTypeFromEndpointMethod } from "@octokit/types";
 
 const releaseRepoOwner = "Enterprise-CMCS";
 const releaseRepo = "mac-fc-report-event-releases";
+const releaseBinaryName = "report-event";
+const windowsType = "Windows_NT"; // https://nodejs.org/api/os.html#ostype
 
 const octokit = new Octokit({
   auth: core.getInput("token"),
@@ -16,6 +18,14 @@ const octokit = new Octokit({
 type ListReleasesResponseDataType = GetResponseDataTypeFromEndpointMethod<
   typeof octokit.repos.listReleases
 >;
+
+function formatReleaseName(version: string, type: string, arch: string) {
+  let name = `${releaseBinaryName}_${version}_${type}_${arch}`;
+  if (type === windowsType) {
+    name += ".exe";
+  }
+  return name;
+}
 
 async function downloadAsset(name: string, url: string) {
   const response = await fetch(url);
@@ -62,7 +72,8 @@ async function downloadRelease(version: string): Promise<string> {
   const nodeArch = arch();
   const nodeType = type();
   const asset = validRelease.assets.find(
-    (a) => a.name.includes(nodeArch) && a.name.includes(nodeType)
+    (a) =>
+      a.name === formatReleaseName(validRelease.tag_name, nodeType, nodeArch)
   );
   if (!asset) {
     throw new Error(
