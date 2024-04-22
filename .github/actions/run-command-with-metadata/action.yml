@@ -1,0 +1,27 @@
+name: 'Run Command With Metadata'
+description: 'Runs a bash command and outputs metadata about the execution'
+inputs:
+  command:
+    description: 'The bash command to run'
+    required: true
+outputs:
+  start-time:
+    value: ${{ steps.run-command.outputs.start-time }}
+    description: 'The start time of the command in ISO 8601 format'
+  end-time:
+    value: ${{ steps.run-command.outputs.end-time }}
+    description: 'The end time of the command in ISO 8601 format'
+  exit-code:
+    value: ${{ steps.run-command.outputs.exit-code }}
+    description: 'The exit code of the command'
+runs:
+  using: 'composite'
+  steps:
+    - id: run-command
+      run: |
+        trap 'EXIT_CODE=$?; \
+        echo "end-time=$(date -Iseconds)" >> $GITHUB_OUTPUT; \
+        echo "exit-code=$EXIT_CODE" >> $GITHUB_OUTPUT' EXIT
+        echo "start-time=$(date -Iseconds)" >> $GITHUB_OUTPUT
+        ${{ inputs.command }}
+      shell: bash

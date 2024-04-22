@@ -1,7 +1,10 @@
 name: Test report-event action
 
 on:
-  push:
+  # push:
+  # TODO refactor or remove
+  workflow_dispatch:
+
 
 jobs:
   test:

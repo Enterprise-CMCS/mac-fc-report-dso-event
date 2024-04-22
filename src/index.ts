@@ -92,7 +92,7 @@ async function downloadRelease(version: string): Promise<string> {
 
 async function main() {
   const version = core.getInput("version");
-  const args = core.getInput("args").split(" ");
+  const args = core.getInput("args");
 
   let releaseName;
   try {
@@ -104,7 +104,7 @@ async function main() {
 
   let returns;
   try {
-    returns = spawnSync(`./${releaseName}`, args);
+    returns = spawnSync(`./${releaseName}`, [args], { shell: true });
   } catch (error) {
     console.error(`Error spawning child process: ${error}`);
     process.exit(1);
