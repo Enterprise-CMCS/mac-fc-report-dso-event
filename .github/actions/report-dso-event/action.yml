@@ -1,4 +1,4 @@
-name: report-event
+name: report-dso-event
 description: 'Sends event data to the MACBIS DevSecOps Metrics API'
 inputs:
   args:
