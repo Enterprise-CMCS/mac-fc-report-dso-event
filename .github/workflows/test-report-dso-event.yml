@@ -22,7 +22,7 @@ jobs:
       continue-on-error: true # TODO for now, we're expecting the program to exit 2 when usage is called
       with:
         args: -h # TODO we might decide to report a valid test event to test infrastructure when it is set up
-        version: "v0.1.0-dev" # use the latest version
+        version: "v0.1.0-dev"
 
     - name: Assert against outputs
       if: ${{ (steps.test-action.outputs.exit-code != 2)  ||  (!contains(steps.test-action.outputs.output, 'report-event')) }}
