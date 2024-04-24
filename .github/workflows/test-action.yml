@@ -1,10 +1,7 @@
-name: Test report-event action
+name: Test report-dso-event action
 
 on:
-  # push:
-  # TODO refactor or remove
-  workflow_dispatch:
-
+  push:
 
 jobs:
   test:
@@ -19,13 +16,13 @@ jobs:
 
     # TODO add a step to configure AWS creds if we decide to test reporting an event
 
-    - name: Test report-event action
+    - name: Test report-dso-event action
       id: test-action
-      uses: ./
+      uses: ./.github/actions/report-dso-event
       continue-on-error: true # TODO for now, we're expecting the program to exit 2 when usage is called
       with:
         args: -h # TODO we might decide to report a valid test event to test infrastructure when it is set up
-        version: "*" # use the latest version
+        version: "v0.1.0-dev" # use the latest version
 
     - name: Assert against outputs
       if: ${{ (steps.test-action.outputs.exit-code != 2)  ||  (!contains(steps.test-action.outputs.output, 'report-event')) }}
