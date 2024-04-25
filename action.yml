@@ -69,15 +69,13 @@ runs:
         steps.run-command.outputs.start-time != '' &&
         (inputs.oidc-role != '' && steps.get-oidc-creds.outcome == 'success')
       continue-on-error: true
-      # uses: aws-actions/configure-aws-credentials@v4
-      # with:
-      #   role-to-assume: arn:aws:iam::${{ inputs.aws-account-id}}:role/delegatedadmin/developer/ct-cmcs-mac-fc-dso-metrics-report-events-role
-      #   role-session-name: ${{ inputs.oidc-role-session-name }}
-      #   aws-region: ${{ inputs.aws-region }}
-      #   role-chaining: true
-      #   role-skip-session-tagging: true
-      shell: bash
-      run: exit 1
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::${{ inputs.aws-account-id}}:role/delegatedadmin/developer/ct-cmcs-mac-fc-dso-metrics-report-events-role
+        role-session-name: ${{ inputs.oidc-role-session-name }}
+        aws-region: ${{ inputs.aws-region }}
+        role-chaining: true
+        role-skip-session-tagging: true
 
     - name: Warn on failure
       if: ${{ !cancelled() && steps.assume-dso-role.outcome == 'failure' }}
