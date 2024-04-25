@@ -50,11 +50,13 @@ runs:
         steps.run-command.outputs.start-time != '' &&
         inputs.oidc-role != ''
       continue-on-error: true # allow the job to succeed when this and subsequent steps fail. that way we don't block the calling workflow by failing this action when the command succceeds but one of our steps fails
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        role-to-assume: ${{ inputs.oidc-role}}
-        role-session-name: ${{ inputs.oidc-role-session-name }}
-        aws-region: ${{ inputs.aws-region }}
+      # uses: aws-actions/configure-aws-credentials@v4
+      # with:
+      #   role-to-assume: ${{ inputs.oidc-role}}
+      #   role-session-name: ${{ inputs.oidc-role-session-name }}
+      #   aws-region: ${{ inputs.aws-region }}
+      shell: bash
+      run: exit 1
 
     - name: Warn on failure
       if: ${{ !cancelled() && steps.get-oidc-creds.outcome == 'failure' }}
