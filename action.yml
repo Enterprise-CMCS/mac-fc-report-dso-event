@@ -39,7 +39,7 @@ runs:
   steps:
     - name: Run command
       id: run-command
-      uses: ./.github/actions/run-command-with-metadata
+      uses: Enterprise-CMCS/mac-fc-report-dso-event/.github/actions/run-command-with-metadata@v0.2.0
       with:
         command: ${{ inputs.command }}
 
@@ -58,7 +58,7 @@ runs:
 
     - name: Warn on failure
       if: ${{ !cancelled() && steps.get-oidc-creds.outcome == 'failure' }}
-      uses: ./.github/actions/warn-and-continue
+      uses: Enterprise-CMCS/mac-fc-report-dso-event/.github/actions/warn-and-continue@v0.2.0
       with:
         message: 'Failed to get OIDC credentials when reporting DSO Metrics. Please investigate the failure.'
 
@@ -76,7 +76,7 @@ runs:
 
     - name: Warn on failure
       if: ${{ !cancelled() && steps.assume-dso-role.outcome == 'failure' }}
-      uses: ./.github/actions/warn-and-continue
+      uses: Enterprise-CMCS/mac-fc-report-dso-event/.github/actions/warn-and-continue@v0.2.0
       with:
         message: 'Failed to assume DSO metrics cross-account role when reporting DSO Metrics. Please investigate the failure.'
 
@@ -87,7 +87,6 @@ runs:
         steps.run-command.outputs.start-time != '' &&
         inputs.event-type == 'test'
       continue-on-error: true
-      # unlike local composite actions, it seems that local Javascript actions require the full org/repo[/path]@ref reference
       uses: Enterprise-CMCS/mac-fc-report-dso-event/.github/actions/report-dso-event@v0.2.0
       with:
         # TODO add coverage
@@ -103,7 +102,7 @@ runs:
 
     - name: Warn on failure
       if: ${{ !cancelled() && steps.report-test-metrics.outcome == 'failure' }}
-      uses: ./.github/actions/warn-and-continue
+      uses: Enterprise-CMCS/mac-fc-report-dso-event/.github/actions/warn-and-continue@v0.2.0
       with:
         message: 'Failed to report test event metrics to the DSO Metrics API. Please investigate the failure.'
 
@@ -128,6 +127,6 @@ runs:
 
     - name: Warn on failure
       if: ${{ !cancelled() && steps.report-deploy-metrics.outcome == 'failure' }}
-      uses: ./.github/actions/warn-and-continue
+      uses: Enterprise-CMCS/mac-fc-report-dso-event/.github/actions/warn-and-continue@v0.2.0
       with:
         message: 'Failed to report deploy event metrics to the DSO Metrics API. Please investigate the failure.'
