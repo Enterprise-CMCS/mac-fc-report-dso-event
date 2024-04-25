@@ -1,0 +1,12 @@
+name: 'Warn and Continue'
+description: 'Echos a warning message and continues on error'
+inputs:
+  message:
+    description: 'The warning message to echo'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - run: echo "::warning::${{ inputs.message }}"
+      shell: bash
+      continue-on-error: true

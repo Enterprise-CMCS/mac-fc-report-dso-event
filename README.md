@@ -1,14 +1,38 @@
-## report-dso-event
+# Run Command And Report DevSecOps (DSO) Event GitHub Action
 
-A GitHub Action that reports a DevSecOps event to the MACBIS DevSecOps Metrics API.
+This GitHub Action allows you to run a command that triggers a DevSecOps (DSO) event, such as a deployment or test run, and send data about the event to the MACBIS DSO Metrics API.
 
-### Usage
+## Inputs
 
-This Action is a thin wrapper around the CLI program `report-event` that is [housed in the mac-fc-dso-metrics repo](https://github.com/Enterprise-CMCS/mac-fc-dso-metrics/tree/main/cmd/report-event). Please see the README of that program for documentation.
+| Input | Description | Required | Default |
+| --- | --- | --- | --- |
+| `command` | The command to run that triggers a DSO event (e.g. a deployment or test run) | Yes | N/A |
+| `aws-account-id` | The AWS account ID containing the DSO Metrics cross-account role used for reporting the event | Yes | N/A |
+| `event-type` | The event type. Must be one of "deploy" or "test" | Yes | N/A |
+| `app` | The app corresponding to the event | Yes | N/A |
+| `team` | The team corresponding to the event | Yes | N/A |
+| `id` | The unique identifier of the event. See documentation (TODO) for choosing an ID | Yes | N/A |
+| `oidc-role` | The OIDC role to assume that has permission to assume the DSO Metrics cross-account role. If not provided, AWS credentials with this permission must be set in the environment when this action is run | No | N/A |
+| `oidc-role-session-name` | OIDC role session name | No | 'ReportDSOEvent' |
+| `aws-region` | AWS region | No | 'us-east-1' |
+| `report-event-version` | The version constraint for the Enterprise-CMCS/mac-fc-dso-metrics/cmd/report-event program in semantic version syntax. Defaults to the latest version (we recommend pinning to a specific version or range) | No | Latest version |
 
-For documentation of the inputs and outputs of this Action, please see `action.yml`.
+## Usage
 
-To report an event, the action requires valid AWS credentials stored in the environment when the action is run. These credentials must provide access to an IAM role that has an entry on the ACL used by the MACBIS DevSecOps Metrics API to determine the API permissions. For more information, please see the documentation for onboarding to the MACBIS DevSecOps Metrics API in Confluence [TODO]
+Here's an example of how to use this action in your workflow:
 
-For an example of usage, please see the workflow that tests the action: `.github/workflows/test-action.yml`
+```yaml
+- name: Run Command And Report DSO Event
+  uses: Enterprise-CMCS/mac-fc-report-dso-event@{ref}
+  with:
+    command: go test ./...
+    event-type: test
+    app: my-app
+    team: my-team
+    id: ${{ github.run_id }}-go-test
+    aws-account-id: 123456789012
+    oidc-role: arn:aws:iam::123456789012:role/example-role
+```
+
+
 

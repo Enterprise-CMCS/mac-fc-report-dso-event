@@ -1,0 +1,21 @@
+name: report-dso-event
+description: 'Sends event data to the MACBIS DevSecOps Metrics API'
+inputs:
+  args:
+    description: Arguments to pass to the report-event program. Please see Enterprise-CMCS/mac-fc-dso-metrics/cmd/report-event/README.md for documentation
+  version:
+    description: The version constraint for the report-event program in semantic version syntax. Defaults to the latest version (we recommend pinning to a specific version or range)
+    default: "*"
+  token:
+    description: The GitHub token used to list the (public) releases of report-event. A token is required to avoid the low non-authenticated rate limit. We recommend using the default GITHUB_TOKEN
+    default: ${{ github.token }}
+outputs:
+  exit-code:
+    description: The exit code of the program
+  output:
+    description: The output of the program (stdout)
+  error-output:
+    description: The error output of the program (stderr)
+runs:
+  using: node20
+  main: ../../../build/index.js

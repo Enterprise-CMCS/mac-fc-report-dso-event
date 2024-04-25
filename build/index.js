@@ -32229,7 +32229,7 @@ function main() {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
         const version = core.getInput("version");
-        const args = core.getInput("args").split(" ");
+        const args = core.getInput("args");
         let releaseName;
         try {
             releaseName = yield downloadRelease(version);
@@ -32239,8 +32239,9 @@ function main() {
             process.exit(1);
         }
         let returns;
+        const command = (0, os_1.type)() === windowsType ? `${releaseName} args` : `./${releaseName} args`;
         try {
-            returns = (0, child_process_1.spawnSync)(`./${releaseName}`, args);
+            returns = (0, child_process_1.spawnSync)(command, { shell: true });
         }
         catch (error) {
             console.error(`Error spawning child process: ${error}`);

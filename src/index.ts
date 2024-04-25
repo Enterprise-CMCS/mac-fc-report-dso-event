@@ -92,7 +92,7 @@ async function downloadRelease(version: string): Promise<string> {
 
 async function main() {
   const version = core.getInput("version");
-  const args = core.getInput("args").split(" ");
+  const args = core.getInput("args");
 
   let releaseName;
   try {
@@ -103,8 +103,10 @@ async function main() {
   }
 
   let returns;
+  const command =
+    type() === windowsType ? `${releaseName} args` : `./${releaseName} args`;
   try {
-    returns = spawnSync(`./${releaseName}`, args);
+    returns = spawnSync(command, { shell: true });
   } catch (error) {
     console.error(`Error spawning child process: ${error}`);
     process.exit(1);

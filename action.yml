@@ -1,21 +1,137 @@
-name: report-event
-description: 'Sends event data to the MACBIS DevSecOps Metrics API'
+name: 'Run Command And Report DevSecOps (DSO) Event'
+description: 'Runs a command and sends event data to the MACBIS DSO Metrics API'
 inputs:
-  args:
-    description: Arguments to pass to the report-event program. Please see Enterprise-CMCS/mac-fc-dso-metrics/cmd/report-event/README.md for documentation
-  version:
-    description: The version constraint for the report-event program in semantic version syntax. Defaults to the latest version (we recommend pinning to a specific version or range)
-    default: "*"
-  token:
-    description: The GitHub token used to list the (public) releases of report-event. A token is required to avoid the low non-authenticated rate limit. We recommend using the default GITHUB_TOKEN
-    default: ${{ github.token }}
-outputs:
-  exit-code:
-    description: The exit code of the program
-  output:
-    description: The output of the program (stdout)
-  error-output:
-    description: The error output of the program (stderr)
+  command:
+    description: 'The command to run that triggers a DSO event (e.g. a deployment or test run)'
+    required: true
+  aws-account-id:
+    description: 'The AWS account ID containing the DSO Metrics cross-account role used for reporting the event'
+    required: true
+  event-type:
+    description: 'The event type. Must be one of "deploy" or "test"'
+    required: true
+  report-event-version:
+    description: "The version constraint for the Enterprise-CMCS/mac-fc-dso-metrics/cmd/report-event program in semantic version syntax. Defaults to the latest version (we recommend pinning to a specific version or range)"
+    required: false
+  app:
+    description: 'The app corresponding to the event'
+    required: true
+  team:
+    description: 'The team corresponding to the event'
+    required: true
+  id:
+    description: 'The unique identifier of the event. See documentation (TODO) for choosing an ID'
+    required: true
+  aws-region:
+    description: '(Optional) AWS region'
+    required: false
+    default: us-east-1
+  oidc-role:
+    description: '(Optional) The OIDC role to assume that has permission to assume the DSO Metrics cross-account role. If not provided, AWS credentials with this permission must be set in the environment when this action is run'
+    required: false
+  oidc-role-session-name:
+    description: '(Optional) OIDC role session name'
+    required: false
+    default: 'ReportDSOEvent'
+
 runs:
-  using: node20
-  main: build/index.js
+  using: 'composite'
+  steps:
+    - name: Run command
+      id: run-command
+      uses: Enterprise-CMCS/mac-fc-report-dso-event/.github/actions/run-command-with-metadata@v0.2.0
+      with:
+        command: ${{ inputs.command }}
+
+    - name: Get OIDC credentials
+      id: get-oidc-creds
+      if: |
+        !cancelled() &&
+        steps.run-command.outputs.start-time != '' &&
+        inputs.oidc-role != ''
+      continue-on-error: true # allow the job to succeed when this and subsequent steps fail. that way we don't block the calling workflow by failing this action when the command succceeds but one of our steps fails
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ inputs.oidc-role}}
+        role-session-name: ${{ inputs.oidc-role-session-name }}
+        aws-region: ${{ inputs.aws-region }}
+
+    - name: Warn on failure
+      if: ${{ !cancelled() && steps.get-oidc-creds.outcome == 'failure' }}
+      uses: Enterprise-CMCS/mac-fc-report-dso-event/.github/actions/warn-and-continue@v0.2.0
+      with:
+        message: 'Failed to get OIDC credentials when reporting DSO Metrics. Please investigate the failure.'
+
+    - name: Assume DSO metrics reporting role
+      id: assume-dso-role
+      if: |
+        !cancelled() &&
+        steps.run-command.outputs.start-time != '' &&
+        (inputs.oidc-role != '' && steps.get-oidc-creds.outcome == 'success')
+      continue-on-error: true
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::${{ inputs.aws-account-id}}:role/delegatedadmin/developer/ct-cmcs-mac-fc-dso-metrics-report-events-role
+        role-session-name: ${{ inputs.oidc-role-session-name }}
+        aws-region: ${{ inputs.aws-region }}
+        role-chaining: true
+        role-skip-session-tagging: true
+
+    - name: Warn on failure
+      if: ${{ !cancelled() && steps.assume-dso-role.outcome == 'failure' }}
+      uses: Enterprise-CMCS/mac-fc-report-dso-event/.github/actions/warn-and-continue@v0.2.0
+      with:
+        message: 'Failed to assume DSO metrics cross-account role when reporting DSO Metrics. Please investigate the failure.'
+
+    - name: Report test metrics
+      id: report-test-metrics
+      if: |
+        !cancelled() &&
+        steps.run-command.outputs.start-time != '' &&
+        steps.assume-dso-role.outcome == 'success' &&
+        inputs.event-type == 'test'
+      continue-on-error: true
+      uses: Enterprise-CMCS/mac-fc-report-dso-event/.github/actions/report-dso-event@v0.2.0
+      with:
+        # TODO add coverage
+        args: >
+          -app "${{ inputs.app }}"
+          -id "${{ inputs.id }}"
+          -team "${{ inputs.team }}"
+          ${{ inputs.event-type }}
+          -start "${{ steps.run-command.outputs.start-time }}"
+          -end "${{ steps.run-command.outputs.end-time }}"
+          -result "${{ steps.run-command.outputs.exit-code == '0' && 'pass' || 'fail' }}"
+        version: ${{ inputs.report-event-version }}
+
+    - name: Warn on failure
+      if: ${{ !cancelled() && steps.report-test-metrics.outcome == 'failure' }}
+      uses: Enterprise-CMCS/mac-fc-report-dso-event/.github/actions/warn-and-continue@v0.2.0
+      with:
+        message: 'Failed to report test event metrics to the DSO Metrics API. Please investigate the failure.'
+
+    - name: Report deploy metrics
+      id: report-deploy-metrics
+      if: |
+        !cancelled() &&
+        steps.run-command.outputs.start-time != '' &&
+        steps.assume-dso-role.outcome == 'success' &&
+        inputs.event-type == 'deploy'
+      continue-on-error: true
+      uses: Enterprise-CMCS/mac-fc-report-dso-event/.github/actions/report-dso-event@v0.2.0
+      with:
+        args: >
+          -app "${{ inputs.app }}"
+          -id "${{ inputs.id }}"
+          -team "${{ inputs.team }}"
+          ${{ inputs.event-type }}
+          -start "${{ steps.run-command.outputs.start-time }}"
+          -end "${{ steps.run-command.outputs.end-time }}"
+          -result "${{ steps.run-command.outputs.exit-code == '0' && 'success' || 'failure' }}"
+        version: ${{ inputs.report-event-version }}
+
+    - name: Warn on failure
+      if: ${{ !cancelled() && steps.report-deploy-metrics.outcome == 'failure' }}
+      uses: Enterprise-CMCS/mac-fc-report-dso-event/.github/actions/warn-and-continue@v0.2.0
+      with:
+        message: 'Failed to report deploy event metrics to the DSO Metrics API. Please investigate the failure.'
