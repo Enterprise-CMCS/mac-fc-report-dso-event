@@ -32239,9 +32239,9 @@ function main() {
             process.exit(1);
         }
         let returns;
-        const command = (0, os_1.type)() === windowsType ? `${releaseName}` : `./${releaseName}`;
+        const command = (0, os_1.type)() === windowsType ? `${releaseName} args` : `./${releaseName} args`;
         try {
-            returns = (0, child_process_1.spawnSync)(command, [args], { shell: true });
+            returns = (0, child_process_1.spawnSync)(command, { shell: true });
         }
         catch (error) {
             console.error(`Error spawning child process: ${error}`);

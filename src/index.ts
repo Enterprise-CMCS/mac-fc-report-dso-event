@@ -104,9 +104,9 @@ async function main() {
 
   let returns;
   const command =
-    type() === windowsType ? `${releaseName}` : `./${releaseName}`;
+    type() === windowsType ? `${releaseName} args` : `./${releaseName} args`;
   try {
-    returns = spawnSync(command, [args], { shell: true });
+    returns = spawnSync(command, { shell: true });
   } catch (error) {
     console.error(`Error spawning child process: ${error}`);
     process.exit(1);
