@@ -104,7 +104,9 @@ async function main() {
 
   let returns;
   const command =
-    type() === windowsType ? `${releaseName} args` : `./${releaseName} args`;
+    type() === windowsType
+      ? `${releaseName} ${args}`
+      : `./${releaseName} ${args}`;
   try {
     returns = spawnSync(command, { shell: true });
   } catch (error) {
