@@ -42,7 +42,7 @@ runs:
   steps:
     - name: Run command
       id: run-command
-      uses: Enterprise-CMCS/mac-fc-report-dso-event/.github/actions/run-command-with-metadata@v0.2.2
+      uses: Enterprise-CMCS/mac-fc-report-dso-event/.github/actions/run-command-with-metadata@v0.2.3
       with:
         command: ${{ inputs.command }}
 
@@ -61,7 +61,7 @@ runs:
 
     - name: Warn on failure
       if: ${{ !cancelled() && steps.get-oidc-creds.outcome == 'failure' }}
-      uses: Enterprise-CMCS/mac-fc-report-dso-event/.github/actions/warn-and-continue@v0.2.2
+      uses: Enterprise-CMCS/mac-fc-report-dso-event/.github/actions/warn-and-continue@v0.2.3
       with:
         message: 'Failed to get OIDC credentials when reporting DSO Metrics. Please investigate the failure.'
 
@@ -82,7 +82,7 @@ runs:
 
     - name: Warn on failure
       if: ${{ !cancelled() && steps.assume-dso-role.outcome == 'failure' }}
-      uses: Enterprise-CMCS/mac-fc-report-dso-event/.github/actions/warn-and-continue@v0.2.2
+      uses: Enterprise-CMCS/mac-fc-report-dso-event/.github/actions/warn-and-continue@v0.2.3
       with:
         message: 'Failed to assume DSO metrics cross-account role when reporting DSO Metrics. Please investigate the failure.'
 
@@ -94,7 +94,7 @@ runs:
         steps.assume-dso-role.outcome == 'success' &&
         inputs.event-type == 'test'
       continue-on-error: true
-      uses: Enterprise-CMCS/mac-fc-report-dso-event/.github/actions/report-dso-event@v0.2.2
+      uses: Enterprise-CMCS/mac-fc-report-dso-event/.github/actions/report-dso-event@v0.2.3
       with:
         # TODO add coverage
         args: >
@@ -110,7 +110,7 @@ runs:
 
     - name: Warn on failure
       if: ${{ !cancelled() && steps.report-test-metrics.outcome == 'failure' }}
-      uses: Enterprise-CMCS/mac-fc-report-dso-event/.github/actions/warn-and-continue@v0.2.2
+      uses: Enterprise-CMCS/mac-fc-report-dso-event/.github/actions/warn-and-continue@v0.2.3
       with:
         message: 'Failed to report test event metrics to the DSO Metrics API. Please investigate the failure.'
 
@@ -122,7 +122,7 @@ runs:
         steps.assume-dso-role.outcome == 'success' &&
         inputs.event-type == 'deploy'
       continue-on-error: true
-      uses: Enterprise-CMCS/mac-fc-report-dso-event/.github/actions/report-dso-event@v0.2.2
+      uses: Enterprise-CMCS/mac-fc-report-dso-event/.github/actions/report-dso-event@v0.2.3
       with:
         args: >
           -app "${{ inputs.app }}"
@@ -136,6 +136,6 @@ runs:
 
     - name: Warn on failure
       if: ${{ !cancelled() && steps.report-deploy-metrics.outcome == 'failure' }}
-      uses: Enterprise-CMCS/mac-fc-report-dso-event/.github/actions/warn-and-continue@v0.2.2
+      uses: Enterprise-CMCS/mac-fc-report-dso-event/.github/actions/warn-and-continue@v0.2.3
       with:
         message: 'Failed to report deploy event metrics to the DSO Metrics API. Please investigate the failure.'

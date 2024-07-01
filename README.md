@@ -24,7 +24,7 @@ Here's an example of how to use this action in your workflow:
 
 ```yaml
 - name: Run Command And Report DSO Event
-  uses: Enterprise-CMCS/mac-fc-report-dso-event@0.2.2
+  uses: Enterprise-CMCS/mac-fc-report-dso-event@0.2.3
   with:
     command: go test ./...
     event-type: test
